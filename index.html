@@ -44,7 +44,7 @@
 
       const start = function() {
         console.log('Starting a peer');
-        var peer = new Peer({key: 'inehwsbupy5e9udi'});
+        var peer = new Peer({host: 'screen-record-peerjs.herokuapp.com', secure: true});
      
         peer.on('open', function() {
           document.body.classList.add('waiting');

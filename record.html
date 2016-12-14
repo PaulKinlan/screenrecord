@@ -45,7 +45,7 @@
         
         function successCallback(stream) {
           let peerId = location.hash.slice(1)
-          let peer = new Peer(`${peerId}-record`, {key: 'inehwsbupy5e9udi'}); 
+          let peer = new Peer(`${peerId}-record`, {host: 'screen-record-peerjs.herokuapp.com', secure: true}); 
           var call = peer.call(peerId, stream);
           call.on('stream', function(remoteStream) {
             // Show stream in some video/canvas element.
