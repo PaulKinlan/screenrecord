@@ -35,14 +35,26 @@
       let recordBtn;
       let remoteScreenElement;
       let remoteStream;
+      let sessionElement;
+      let sessionUrlElement;
       let recorder;
       let recordedBlobs = [];
       let body = document.body;
+      let recordUrl = new URL(window.location);
 
       const start = function() {
         console.log('Starting a peer');
-        var peer = new Peer('pick-an-id', {key: 'inehwsbupy5e9udi'}); 
+        var peer = new Peer({key: 'inehwsbupy5e9udi'});
+     
+        peer.on('open', function() {
+          document.body.classList.add('waiting');
+          recordUrl.pathname = '/record.html';
+          recordUrl.hash = peer.id;
+          sessionUrlElement.innerText = recordUrl.toString();
+        });
+
         peer.on('call', function(call) {
+          document.body.classList.remove('waiting')
           console.log('Call Recieved', call);
           call.answer(); // Answer the call with an A/V stream.
           call.on('stream', function(remoteScreenStream) {
@@ -73,6 +85,8 @@
         recordBtn = document.getElementById('recordBtn');
         stopRecordingBtn = document.getElementById('stopRecordingBtn');
         remoteScreenElement = document.getElementById('remoteScreenElement');
+        sessionElement = document.getElementById('sessionElement');
+        sessionUrlElement = document.getElementById('sessionUrlElement');
         stopRecordingBtn.addEventListener('click', stopRecording);
         recordBtn.addEventListener('click', startRecording);
 
@@ -106,6 +120,7 @@
   </head>
 
   <body class="loading">
+    <p id="sessionElement">Open <span id="sessionUrlElement"></span> on your Android device</p>
     <button id="recordBtn">Start Record</button>
     <button id="stopRecordingBtn">Stop Record</button>
     <video autoplay muted="true" id="remoteScreenElement"></video>

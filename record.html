@@ -32,18 +32,9 @@
           })
       }
 
-      let recordBtn;
       let peer;
-
-      const start = function() {
-        document.body.classList.add('recording');
-        
-      }
-
+     
       onload = function() {
-        recordBtn = document.getElementById('record');
-        recordBtn.addEventListener('click', start);
-
         navigator.getUserMedia = navigator.getUserMedia ||
           navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
@@ -53,12 +44,12 @@
         };
         
         function successCallback(stream) {
-          let peer = new Peer('pick-an-id-record', {key: 'inehwsbupy5e9udi'}); 
-          var call = peer.call('pick-an-id', stream);
+          let peerId = location.hash.slice(1)
+          let peer = new Peer(`${peerId}-record`, {key: 'inehwsbupy5e9udi'}); 
+          var call = peer.call(peerId, stream);
           call.on('stream', function(remoteStream) {
             // Show stream in some video/canvas element.
           });
-
         }
 
         function errorCallback(error) {
@@ -72,7 +63,6 @@
   </head>
 
   <body>
-    <button id="record">Share Screen</button>
     <p id="recordError">Enable chrome://flags#enable-usermedia-screen-capturing</p>
     <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
