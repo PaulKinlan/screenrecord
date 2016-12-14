@@ -23,11 +23,8 @@ self.addEventListener('install', e => {
     caches.open('framer').then(cache => {
       return cache.addAll([
         './index.html',
+        './target.html',
         './css/main.css',
-        './scripts/ffmpeg.js',
-        './scripts/ffmpeg-worker-mp4.js',
-        './assets/n6-background.png',
-        './assets/n6-background.mp4'
       ])
       .then(() => self.skipWaiting());
     })
@@ -39,9 +36,9 @@ self.addEventListener('activate',  event => {
 });
 
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
-  );
+  // event.respondWith(
+  //   caches.match(event.request).then(response => {
+  //     return response || fetch(event.request);
+  //   })
+  // );
 });

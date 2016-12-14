@@ -53,50 +53,20 @@ input[type=file] {
 	z-index: -1;
 }
 
-#working {
+body.streaming {
+
+}
+
+#recordBtn, #stopRecordingBtn {
   display: none;
 }
 
-body.working #working {
+body.streaming #recordBtn {
   display: block;
 }
 
-body.working #output {
-  display: flex;
-}
-
-body.working label[for=videoFile] {
-  display: none;
-}
-
-body.working #videoFile {
-  display: none;
-}
-
-#output {
-  display: none;
-  position: relative;
-  margin: 1em;
-  height: 70%;
-  padding: 0.5em;
-  box-sizing: border-box;
-  background-color: rgba(255,255,255,0.1);
-  border-radius: 0.2em;
-  width: 100%;
-  box-shadow: inset 1px 1px 1px 1px #e25e34;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: center;
-}
-
-#output h2 {
-  font-size: 2rem;
-}
-
-#output div {
-  max-width: 50%;
-  width: 50%;
-  text-align: center;
+body.recording #stopRecordingBtn{
+  display: block;
 }
 
 #preview {

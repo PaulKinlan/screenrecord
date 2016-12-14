@@ -1,7 +1,7 @@
 <html>
   <head>
     <title>Android Device Framer</title>
-    <meta name="description" content="Accepts an Android Screen recording and will put an Android Device Frame around it.">
+    <meta name="description" content="Records your Android Screen">
     <meta name="viewport" content="width=device-width">
     <meta name="twitter:creator" content="@Paul_Kinlan">
     <script type="application/ld+json">
@@ -22,7 +22,8 @@
     <link rel="stylesheet" href="./css/main.css">
     <meta name="theme-color" content="#FF9800">
     <link rel="manifest" href="./manifest.json">
-    <script src="./scripts/ffmpeg.js"></script>
+    <script src="http://cdn.peerjs.com/0.3/peer.js"></script>
+
     <script>
       if(navigator.serviceWorker) {
         navigator.serviceWorker.register('./sw.js')
@@ -31,76 +32,61 @@
           })
       }
 
-      const ffmpeg = new ffmpegEncoder();
-      let fileInput;
+      let recordBtn;
+      let remoteScreenElement;
+      let remoteStream;
+      let recorder;
+      let recordedBlobs = [];
+      let body = document.body;
 
-      let loadFile = function(file) {
-        return new Promise(function(resolve, reject) {
-          const fileReader = new FileReader();
-          fileReader.onload = function(e) {
-            resolve(this.result);
-          };
-          fileReader.readAsArrayBuffer(file);
-        });
-      };
-
-      const backgroundImageRequest = fetch('./assets/n6-background.mp4');
-
-      const start = function(file) {
-        document.body.classList.add('working');
-        let urlToVideo = URL.createObjectURL(file);
-        let inputVideo = document.getElementById('inputVideo');
-
-        inputVideo.src = urlToVideo;
-        
-
-        ffmpeg.videoReady.then(function() {
-          // the video has completed processing
-          document.body.classList.remove('working');
-        });
-
-        const logEl = document.getElementById('log');
-
-        ffmpeg.stderr = function(msg) {
-          logEl.innerText += msg.data + "\n";
-          logEl.scrollTop = logEl.scrollHeight;
-        };
-
-        ffmpeg.ready.then(function() {
-          //the framework is ready
-          return loadFile(file);
-        })
-        .then(function(arrayBuffer) {
-          // We have the file that the user has input, now load the
-          backgroundImageRequest.then(function(response) {
-            return response.arrayBuffer();
-          })
-          .then(function(responsebuffer) {
-            ffmpeg.run([
-              {name: 'n6-background.mp4', data: responsebuffer},
-              {name: file.name, data: arrayBuffer}
-              ]
-            );
+      const start = function() {
+        console.log('Starting a peer');
+        var peer = new Peer('pick-an-id', {key: 'inehwsbupy5e9udi'}); 
+        peer.on('call', function(call) {
+          console.log('Call Recieved', call);
+          call.answer(); // Answer the call with an A/V stream.
+          call.on('stream', function(remoteScreenStream) {
+            document.body.classList.add('streaming')
+            // Show stream in some video/canvas element.
+            remoteStream = remoteScreenStream
+            remoteScreenElement.src = URL.createObjectURL(remoteStream);
+            remoteScreenElement.play();
           });
+          call.on('')
         });
       }
 
-      onload = function() {
-
-        ffmpeg.ready.then(function() {
-          document.body.classList.remove('loading');
-        });
-
-        fileInput = document.getElementById("videoFile");
-        fileInput.onchange = function(e) {
-          start(e.target.files[0]);
-        };
+      const startRecording = function(e) {
+        document.body.classList.add('recording');
+        document.body.classList.remove('streaming');
+        recordScreen();
       };
 
-      ffmpeg.videoReady.then(function(data) {
-        var buffer = data.MEMFS[0].data;
-        download(new Blob( [ buffer ], { type: "video/mp4" } ));
-      });
+      const stopRecording = function(e) {
+        document.body.classList.remove('recording');
+        document.body.classList.add('streaming');
+        recorder.stop();
+      };
+
+
+      onload = function() {
+        recordBtn = document.getElementById('recordBtn');
+        stopRecordingBtn = document.getElementById('stopRecordingBtn');
+        remoteScreenElement = document.getElementById('remoteScreenElement');
+        stopRecordingBtn.addEventListener('click', stopRecording);
+        recordBtn.addEventListener('click', startRecording);
+
+        //create peer to remote host.
+        start();    
+      };
+
+      function recordScreen() {
+        recorder = new MediaRecorder(remoteStream, {mimeType: 'video/webm; codecs=vp9'});
+        
+        recorder.ondataavailable = e => { console.log(e.data); if (e.data && e.data.size > 0) recordedBlobs.push(e.data)};
+        recorder.onstop = (e) => download(new Blob(recordedBlobs, {type: 'video/webm'}));
+        recorder.start(10); // collect 10ms chunks of data
+      }
 
       function download(blob) {
         var url = window.URL.createObjectURL(blob);
@@ -116,68 +102,13 @@
         }, 100);
       }
 
-      ondragover = function(e) {
-        if (e.preventDefault) {
-          e.preventDefault(); // Necessary. Allows us to drop.
-        }
-
-        if(e.dataTransfer.items[0].type.indexOf('video/') != 0 
-           && e.dataTransfer.files[0].type.indexOf('video/') !=0) {
-          document.body.classList.add('badfile');
-          return false;
-        }
-
-        document.body.classList.add('goodfile');
-
-        e.dataTransfer.dropEffect = 'move';  // See the section on the DataTransfer object.
-
-        return false;
-      }
-
-      ondragleave = function() {
-        document.body.classList.remove('goodfile');
-        document.body.classList.remove('badfile');
-      }
-
-      ondragend= function() {
-        document.body.classList.remove('goodfile');
-        document.body.classList.remove('badfile');
-      }
-
-      const outputBuffer = new ArrayBuffer();
-
-      ondrop = function(e) {
-        if (e.stopPropagation) {
-          e.stopPropagation(); // stops the browser from redirecting.
-        }
-
-        document.body.classList.remove('badfile');
-        document.body.classList.remove('goodfile');
-
-        if(e.dataTransfer.items[0].type.indexOf('video/') != 0) {
-          return false;
-        }
-
-        start(e.dataTransfer.files[0]);
-
-        return false;
-      };
     </script>
   </head>
 
-  <body draggable class="loading">
-    <p id="loading">Loading the system... wait one moment</p>
-    <label for="videoFile">Select or drop a video file</label>
-    <input type="file" name="videoFile" id="videoFile" accept="video/*">
-    <div id="working">Encoding video. It may be some time.</div>
-    <div id="output">
-      <div id="preview">
-        <video id="inputVideo"></video>
-      </div>
-      <div id="outputlog">
-        <pre id="log"></pre>
-      </div>
-    </div>
+  <body class="loading">
+    <button id="recordBtn">Start Record</button>
+    <button id="stopRecordingBtn">Stop Record</button>
+    <video autoplay muted="true" id="remoteScreenElement"></video>
     <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
