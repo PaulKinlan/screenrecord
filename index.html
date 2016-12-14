@@ -44,11 +44,11 @@
 
       const start = function() {
         console.log('Starting a peer');
-        var peer = new Peer({host: 'screen-record-peerjs.herokuapp.com', secure: true});
+        var peer = new Peer({host: 'screen-record-peerjs.herokuapp.com', secure: true, port:443});
      
         peer.on('open', function() {
           document.body.classList.add('waiting');
-          recordUrl.pathname = '/record.html';
+          recordUrl.pathname += 'record.html';
           recordUrl.hash = peer.id;
           sessionUrlElement.innerText = recordUrl.toString();
         });
