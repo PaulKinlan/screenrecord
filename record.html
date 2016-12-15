@@ -45,11 +45,37 @@
         
         function successCallback(stream) {
           let peerId = location.hash.slice(1)
-          let peer = new Peer(`${peerId}-record`, {host: 'screen-record-peerjs.herokuapp.com', secure: true}); 
+          let peer = new Peer({
+            host: 'screen-record-peerjs.herokuapp.com', 
+            secure: true, 
+            port:443,
+            config: {'iceServers': [
+                  { url: 'stun:stun.devicefra.me' },
+                  { url: 'turn:turn.devicefra.me:443', 
+                      username: 'whatausername',
+                      credential: 'whatapassword' }
+              ]}
+          });
+          
+          peer.on('open', function(id) {
+            console.log('My peer ID is: ' + id);
+          });
+
+
+          peer.on('disconnected', function() {
+            console.log('disconnected');
+          });
+          
+
+          peer.on('error', function(err) {
+            console.log('Err: ' + err);
+          });
+          
           var call = peer.call(peerId, stream);
           call.on('stream', function(remoteStream) {
             // Show stream in some video/canvas element.
           });
+
         }
 
         function errorCallback(error) {
