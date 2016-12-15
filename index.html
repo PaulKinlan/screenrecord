@@ -61,7 +61,10 @@
           recordUrl.pathname += 'record.html';
           recordUrl.hash = peer.id;
           sessionUrlElement.innerText = recordUrl.toString();
-        });     
+          document.querySelector('#qrCodeElement').src =
+            'http://chart.apis.google.com/chart?cht=qr&chs=300x300&chld=H|0&chl=' +
+            encodeURIComponent(recordUrl.toString());
+        });
 
         peer.on('disconnected', function() {
           console.log('disconnected');
@@ -87,7 +90,7 @@
           call.answer(); // Answer the call with an A/V stream.
 
         });
-      }
+      };
 
       const startRecording = function(e) {
         document.body.classList.add('recording');
@@ -142,6 +145,7 @@
 
   <body class="loading">
     <p id="sessionElement">Open <span id="sessionUrlElement"></span> on your Android device</p>
+    <p><img id="qrCodeElement"></p>
     <button id="recordBtn">Start Record</button>
     <button id="stopRecordingBtn">Stop Record</button>
     <video autoplay muted="true" id="remoteScreenElement"></video>
