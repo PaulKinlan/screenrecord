@@ -23,7 +23,7 @@ self.addEventListener('install', e => {
     caches.open('framer').then(cache => {
       return cache.addAll([
         './index.html',
-        './target.html',
+        './record.html',
         './css/main.css',
       ])
       .then(() => self.skipWaiting());
