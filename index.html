@@ -62,7 +62,7 @@
           recordUrl.hash = peer.id;
           sessionUrlElement.innerText = recordUrl.toString();
           document.querySelector('#qrCodeElement').src =
-            'http://chart.apis.google.com/chart?cht=qr&chs=300x300&chld=H|0&chl=' +
+            'https://chart.apis.google.com/chart?cht=qr&chs=300x300&chld=H|0&chl=' +
             encodeURIComponent(recordUrl.toString());
         });
 
