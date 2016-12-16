@@ -45,17 +45,17 @@
       const start = function() {
         console.log('Starting a peer');
         var peer = new Peer({
-          host: 'screen-record-peerjs.herokuapp.com', 
-          secure: true, 
+          host: 'screen-record-peerjs.herokuapp.com',
+          secure: true,
           port:443,
           config: {'iceServers': [
                  { url: 'stun:stun.devicefra.me' },
-                { url: 'turn:turn.devicefra.me', 
+                { url: 'turn:turn.devicefra.me',
                     username: 'whatausername',
                     credential: 'whatapassword' }
             ]} /* Sample servers, please use appropriate ones */
         });
-     
+
         peer.on('open', function() {
           document.body.classList.add('waiting');
           recordUrl.pathname += 'record.html';
@@ -69,7 +69,7 @@
         peer.on('disconnected', function() {
           console.log('disconnected');
         });
-        
+
 
         peer.on('error', function(err) {
           console.log('Err: ' + err);
@@ -78,7 +78,7 @@
         peer.on('call', function(call) {
           document.body.classList.remove('waiting')
           console.log('Call Recieved', call);
-          
+
           call.on('stream', function(remoteScreenStream) {
             document.body.classList.add('streaming')
             // Show stream in some video/canvas element.
@@ -115,12 +115,12 @@
         recordBtn.addEventListener('click', startRecording);
 
         //create peer to remote host.
-        start();    
+        start();
       };
 
       function recordScreen() {
         recorder = new MediaRecorder(remoteStream, {mimeType: 'video/webm; codecs=vp9'});
-        
+
         recorder.ondataavailable = e => { console.log(e.data); if (e.data && e.data.size > 0) recordedBlobs.push(e.data)};
         recorder.onstop = (e) => download(new Blob(recordedBlobs, {type: 'video/webm'}));
         recorder.start(10); // collect 10ms chunks of data
