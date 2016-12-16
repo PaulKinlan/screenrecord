@@ -1,6 +1,6 @@
 {
-  "name": "Device Framer",
-  "short_name": "Device Framer",
+  "name": "Screen Recorder",
+  "short_name": "Screen Recorder",
   "start_url": "./index.html",
   "icons": [
     {
