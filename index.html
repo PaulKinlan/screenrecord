@@ -144,8 +144,10 @@
   </head>
 
   <body class="loading">
-    <p id="sessionElement">Open <span id="sessionUrlElement"></span> on your Android device</p>
-    <p><img id="qrCodeElement"></p>
+    <div id="sessionElement">
+      <div>Open <span id="sessionUrlElement"></span> on your Android device.</div>
+      <div><img id="qrCodeElement"></div>
+    </div>
     <button id="recordBtn">Start Record</button>
     <button id="stopRecordingBtn">Stop Record</button>
     <video autoplay muted="true" id="remoteScreenElement"></video>
