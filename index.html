@@ -1,165 +1,98 @@
-<html>
-  <head>
-    <title>Android Device Framer</title>
-    <meta name="description" content="Records your Android Screen">
-    <meta name="viewport" content="width=device-width">
-    <meta name="twitter:creator" content="@Paul_Kinlan">
-    <script type="application/ld+json">
-      {
-        "@context": "http://schema.org",
-        "@type": "Person",
-        "name": "Paul Kinlan",
-        "url": "https://paul.kinlan.me/",
-        "sameAs": [
-          "https://twitter.com/paul_kinlan",
-          "https://www.instagram.com/paul_kinlan/",
-          "https://www.linkedin.com/in/paulkinlan",
-          "https://plus.google.com/+paulkinlan",
-          "https://github.com/paulkinlan"
-        ]
-      }
-    </script>
-    <link rel="stylesheet" href="./css/main.css">
-    <meta name="theme-color" content="#FF9800">
-    <link rel="manifest" href="./manifest.json">
-    <script src="scripts/peer.js"></script>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Screen Record — private browser screen recorder</title>
+  <meta name="description" content="Record a tab, window, or screen locally in your browser and download a WebM copy.">
+  <meta name="theme-color" content="#0c1424">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./css/main.css">
+  <script type="module" src="./scripts/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#recorder">Skip to recorder</a>
+  <header class="site-header">
+    <a class="brand" href="./"><span aria-hidden="true">●</span> Screen Record</a>
+    <p>Private by design</p>
+  </header>
 
-    <script>
-      if(navigator.serviceWorker) {
-        navigator.serviceWorker.register('./sw.js')
-          .then(() => {
-            console.log('installed');
-          })
-      }
+  <main>
+    <section class="hero" aria-labelledby="title">
+      <p class="eyebrow">Record locally. Share deliberately.</p>
+      <h1 id="title">Show what<br>you mean.</h1>
+      <p>Capture a browser tab, app window, or desktop. Preview the result and save it as WebM—without uploading the recording.</p>
+    </section>
 
-      let recordBtn;
-      let remoteScreenElement;
-      let remoteStream;
-      let sessionElement;
-      let sessionUrlElement;
-      let recorder;
-      let recordedBlobs = [];
-      let body = document.body;
-      let recordUrl = new URL(window.location);
+    <section id="recorder" class="recorder" aria-labelledby="recorder-title">
+      <div class="section-heading">
+        <div><p class="step">Recorder</p><h2 id="recorder-title">Start a capture</h2></div>
+        <p id="support-note">Your browser will ask what you want to share. Screen Record never sees anything you don’t choose.</p>
+      </div>
 
-      const start = function() {
-        console.log('Starting a peer');
-        var peer = new Peer({
-          host: 'screen-record-peerjs.herokuapp.com',
-          secure: true,
-          port:443,
-          config: {'iceServers': [
-                 { url: 'stun:stun.devicefra.me' },
-                { url: 'turn:turn.devicefra.me',
-                    username: 'whatausername',
-                    credential: 'whatapassword' }
-            ]} /* Sample servers, please use appropriate ones */
-        });
+      <div id="unsupported" class="unsupported" hidden>
+        <h3>Screen capture isn’t available here</h3>
+        <p>Mobile browsers—including Chrome on Android—do not currently expose screen capture to web pages. Open this page in current Chrome, Edge, or Firefox on a desktop computer.</p>
+        <p id="legacy-remote">The original 2017 two-device Android relay depended on a retired PeerJS server and obsolete capture flags. This version fails honestly instead of pretending that connection still works.</p>
+      </div>
 
-        peer.on('open', function() {
-          document.body.classList.add('waiting');
-          recordUrl.pathname += 'record.html';
-          recordUrl.hash = peer.id;
-          sessionUrlElement.innerText = recordUrl.toString();
-          document.querySelector('#qrCodeElement').src =
-            'https://chart.apis.google.com/chart?cht=qr&chs=300x300&chld=H|0&chl=' +
-            encodeURIComponent(recordUrl.toString());
-        });
+      <div id="ready" class="ready-panel">
+        <div class="capture-mark" aria-hidden="true"><span></span></div>
+        <h3>Ready when you are</h3>
+        <p>Select a source, then choose whether to share audio in your browser’s permission panel.</p>
+        <button id="choose-source" class="primary-button" type="button">Choose what to record</button>
+      </div>
 
-        peer.on('disconnected', function() {
-          console.log('disconnected');
-        });
+      <div id="studio" class="studio" hidden>
+        <div class="preview-shell">
+          <video id="preview" autoplay muted playsinline></video>
+          <div class="preview-status"><span id="status-dot"></span><strong id="status-text">Source selected</strong><time id="timer" datetime="PT0S">00:00</time></div>
+        </div>
+        <aside class="controls" aria-labelledby="controls-title">
+          <p class="step">Controls</p>
+          <h3 id="controls-title">Capture session</h3>
+          <dl>
+            <div><dt>Source</dt><dd id="source-label">Screen</dd></div>
+            <div><dt>Resolution</dt><dd id="resolution">—</dd></div>
+            <div><dt>Audio</dt><dd id="audio-status">Not shared</dd></div>
+          </dl>
+          <div class="button-stack">
+            <button id="record" class="record-button" type="button"><span aria-hidden="true"></span> Start recording</button>
+            <button id="stop" class="primary-button" type="button" hidden>Stop and preview</button>
+            <button id="change-source" class="secondary-button" type="button">Change source</button>
+            <button id="end-session" class="quiet-button" type="button">End capture</button>
+          </div>
+          <p id="message" class="message" role="status" aria-live="polite"></p>
+        </aside>
+      </div>
 
+      <section id="result" class="result" aria-labelledby="result-title" hidden>
+        <div class="section-heading compact">
+          <div><p class="step">Complete</p><h2 id="result-title">Recording ready</h2></div>
+          <p id="result-details"></p>
+        </div>
+        <video id="playback" controls playsinline></video>
+        <div class="actions">
+          <a id="download" class="primary-button" download="screen-recording.webm">Download WebM</a>
+          <button id="record-again" class="secondary-button" type="button">Record again</button>
+        </div>
+      </section>
 
-        peer.on('error', function(err) {
-          console.log('Err: ' + err);
-        });
+      <p id="error" class="error" role="alert" hidden></p>
+    </section>
 
-        peer.on('call', function(call) {
-          document.body.classList.remove('waiting')
-          console.log('Call Recieved', call);
+    <section class="notes" aria-labelledby="notes-title">
+      <p class="eyebrow">Before you record</p>
+      <h2 id="notes-title">A few useful details.</h2>
+      <div class="note-grid">
+        <article><h3>Nothing is uploaded</h3><p>The browser keeps capture data in this tab until you download it or close the page.</p></article>
+        <article><h3>Permission stays visible</h3><p>Your browser shows a sharing indicator and lets you stop sharing at any time.</p></article>
+        <article><h3>WebM output</h3><p>Recordings use the best WebM codec your browser exposes. Most modern players and editors support it.</p></article>
+      </div>
+    </section>
+  </main>
 
-          call.on('stream', function(remoteScreenStream) {
-            document.body.classList.add('streaming')
-            // Show stream in some video/canvas element.
-            remoteStream = remoteScreenStream
-            remoteScreenElement.src = URL.createObjectURL(remoteStream);
-            remoteScreenElement.play();
-          });
-
-          call.answer(); // Answer the call with an A/V stream.
-
-        });
-      };
-
-      const startRecording = function(e) {
-        document.body.classList.add('recording');
-        document.body.classList.remove('streaming');
-        recordScreen();
-      };
-
-      const stopRecording = function(e) {
-        document.body.classList.remove('recording');
-        document.body.classList.add('streaming');
-        recorder.stop();
-      };
-
-
-      onload = function() {
-        recordBtn = document.getElementById('recordBtn');
-        stopRecordingBtn = document.getElementById('stopRecordingBtn');
-        remoteScreenElement = document.getElementById('remoteScreenElement');
-        sessionElement = document.getElementById('sessionElement');
-        sessionUrlElement = document.getElementById('sessionUrlElement');
-        stopRecordingBtn.addEventListener('click', stopRecording);
-        recordBtn.addEventListener('click', startRecording);
-
-        //create peer to remote host.
-        start();
-      };
-
-      function recordScreen() {
-        recorder = new MediaRecorder(remoteStream, {mimeType: 'video/webm; codecs=vp9'});
-
-        recorder.ondataavailable = e => { console.log(e.data); if (e.data && e.data.size > 0) recordedBlobs.push(e.data)};
-        recorder.onstop = (e) => download(new Blob(recordedBlobs, {type: 'video/webm'}));
-        recorder.start(10); // collect 10ms chunks of data
-      }
-
-      function download(blob) {
-        var url = window.URL.createObjectURL(blob);
-        var a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'test.mp4';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(function() {
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }, 100);
-      }
-
-    </script>
-  </head>
-
-  <body class="loading">
-    <div id="sessionElement">
-      <div>Open <a id="sessionUrlElement"></a> on your Android device.</div>
-      <div><img id="qrCodeElement"></div>
-    </div>
-    <button id="recordBtn">Start Record</button>
-    <button id="stopRecordingBtn">Stop Record</button>
-    <video autoplay muted="true" id="remoteScreenElement"></video>
-    <script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-88398808-2', 'auto');
-  ga('send', 'pageview');
-
-</script>
-  </body>
+  <footer><p>Built by <a href="https://paul.kinlan.me/">Paul Kinlan</a>. <a href="https://github.com/PaulKinlan/screenrecord">View source</a>.</p></footer>
+</body>
 </html>

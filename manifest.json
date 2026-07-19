@@ -1,17 +1,1 @@
-{
-  "name": "Screen Recorder",
-  "short_name": "Screen Recorder",
-  "start_url": "./index.html",
-  "icons": [
-    {
-      "src": "./assets/icons/phone-192.png",
-      "type": "image/png",
-      "sizes": "192x192"
-    }
-  ],
-  "scope": "/",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#FF9800",
-  "theme_color": "#FF9800"
-}
+{"id":"./","name":"Screen Record","short_name":"Screen Record","description":"Record a tab, window, or screen privately in your browser.","start_url":"./","scope":"./","display":"standalone","background_color":"#0c1424","theme_color":"#0c1424"}
